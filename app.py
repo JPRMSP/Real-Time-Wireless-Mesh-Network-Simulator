@@ -4,6 +4,7 @@ import math
 import networkx as nx
 from pyvis.network import Network
 import tempfile
+import os
 
 # -------------------------------------------------------
 # BASIC CONFIG
@@ -93,26 +94,28 @@ def send_packet(src, dst):
 # -------------------------------------------------------
 src = random.randint(0, num_nodes - 1)
 dst = random.randint(0, num_nodes - 1)
-
 path, status = send_packet(src, dst)
 
 # -------------------------------------------------------
-# VISUALIZATION
+# VISUALIZATION (FIXED)
 # -------------------------------------------------------
 net = Network(height="600px", width="100%", bgcolor="#222", font_color="white")
 net.barnes_hut()
 
+# Add nodes
 for i in nodes:
     color = "orange" if nodes[i]["selfish"] else "lightblue"
     title = f"Node {i}<br>Power: {nodes[i]['power']}%<br>Trust: {nodes[i]['trust']}"
     net.add_node(i, label=str(i), x=nodes[i]["x"], y=nodes[i]["y"], color=color, title=title)
 
+# Add edges
 for u, v in G.edges():
     cap = G[u][v]["capacity"]
     net.add_edge(u, v, label=str(cap))
 
-temp_path = tempfile.NamedTemporaryFile(delete=False)
-net.show(temp_path.name)
+# Create correct temporary HTML file
+tmp_html = tempfile.NamedTemporaryFile(delete=False, suffix=".html")
+net.write_html(tmp_html.name)
 
 # -------------------------------------------------------
 # DISPLAY RESULTS
@@ -121,7 +124,7 @@ col1, col2 = st.columns(2)
 
 with col1:
     st.subheader("WMN Topology")
-    st.components.v1.html(open(temp_path.name, "r").read(), height=600)
+    st.components.v1.html(open(tmp_html.name, "r").read(), height=600)
 
 with col2:
     st.subheader("Simulation Result")
